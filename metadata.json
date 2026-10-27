@@ -1,0 +1,6 @@
+{
+  "name": "BizFlow - Multi-Brand Finance & Business Management",
+  "description": "Platform manajemen keuangan dan operasional multi-brand dengan isolasi ruang kerja Ika dan Redi serta pengawasan transparansi admin Baliyoutevolution.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

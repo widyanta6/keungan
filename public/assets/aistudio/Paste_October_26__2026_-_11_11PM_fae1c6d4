@@ -1,0 +1,837 @@
+# PROMPT GOOGLE AI STUDIO — PENGEMBANGAN FITUR TAMBAHAN BIZFLOW MULTI-BRAND
+
+## 1. PERAN DAN TUJUAN
+
+Bertindaklah sebagai Senior Full-Stack Developer, Software Architect, UI/UX Designer, dan Financial System Analyst.
+
+Saya sudah memiliki aplikasi web **BizFlow Multi-Brand** yang berjalan. Beberapa fitur utama, dashboard, pencatatan keuangan, dan ekspor Excel sudah berfungsi dengan baik.
+
+Tugas kamu adalah **melanjutkan dan mengembangkan aplikasi yang sudah ada dengan menambahkan fitur baru serta mengintegrasikan seluruh alurnya ke sistem keuangan yang telah tersedia**.
+
+### ATURAN UTAMA
+
+1. Jangan membangun ulang aplikasi dari nol.
+2. Jangan menghapus fitur yang sudah berjalan.
+3. Jangan mengubah desain utama, navigasi, struktur brand, atau alur yang sudah berfungsi tanpa alasan teknis yang kuat.
+4. Pertahankan sistem login, database, dashboard, transaksi, laporan, dan ekspor Excel yang sudah ada.
+5. Sebelum mengubah kode, periksa struktur proyek, framework, database, autentikasi, model data, komponen UI, dan alur keuangan yang sudah digunakan.
+6. Gunakan kembali komponen, fungsi, tabel, dan layanan yang sudah ada jika memungkinkan.
+7. Jangan membuat data dummy sebagai pengganti fitur yang seharusnya bekerja dengan data nyata.
+8. Jangan hanya membuat tampilan UI. Semua fitur harus memiliki logika, validasi, penyimpanan data, dan integrasi yang benar.
+9. Jangan merusak data pengguna yang sudah tersimpan.
+10. Implementasikan perubahan secara bertahap dan pastikan fitur lama tetap berfungsi.
+
+Jika ada bagian yang belum jelas dalam struktur aplikasi, periksa kode yang tersedia terlebih dahulu. Pilih solusi yang paling konsisten dengan arsitektur aplikasi saat ini.
+
+---
+
+## 2. KONSEP APLIKASI YANG HARUS DIPERTAHANKAN
+
+BizFlow merupakan aplikasi pengelolaan berbagai brand dalam satu sistem.
+
+Aplikasi harus mempertahankan pembagian akses yang sudah ada:
+
+- **Ika:** hanya dapat mengakses brand Tirama dan CHEMI.
+- **Redi:** hanya dapat mengakses brand BYE (Bali Youth Evolution), Metamorph, dan Presta Media.
+- **Admin Baliyoutevolution:** dapat melihat data keuangan, transaksi, dan laporan milik Ika serta Redi sesuai izin yang telah ditentukan, tetapi hanya dalam mode read-only.
+
+Admin read-only tidak boleh menambah, mengubah, menghapus, menyetujui, membayar, atau mengubah pengaturan data milik pengguna lain.
+
+Hak akses harus divalidasi pada backend/database, bukan hanya dengan menyembunyikan tombol di frontend. Jangan mengubah aturan akses yang sudah berjalan tanpa kebutuhan yang jelas.
+
+Semua fitur baru harus mengikuti pemisahan brand dan workspace tersebut.
+
+---
+
+# 3. FITUR BARU PERTAMA — DYNAMIC WORKSHEET
+
+## 3.1 Tujuan
+
+Tambahkan fitur **Dynamic Worksheet**, yaitu fitur yang memungkinkan pengguna membuat lembar kerja baru secara mandiri di dalam aplikasi tanpa harus meminta developer menambahkan modul atau mengubah kode setiap kali ada kebutuhan pencatatan baru.
+
+Contohnya:
+- Daftar aktivitas event.
+- Monitoring pengeluaran proyek.
+- Daftar vendor.
+- Jadwal produksi.
+- Database partner.
+- Monitoring kampanye marketing.
+- Daftar kebutuhan operasional.
+- Tracking tugas tim.
+- Monitoring pembayaran.
+- Pencatatan lain sesuai kebutuhan bisnis.
+
+## 3.2 Fitur yang harus tersedia
+
+Pengguna yang memiliki izin dapat:
+
+1. Membuat worksheet baru.
+2. Menentukan nama dan deskripsi worksheet.
+3. Memilih brand/workspace tempat worksheet disimpan.
+4. Memulai dari worksheet kosong atau template.
+5. Menambah baris data.
+6. Menambah kolom sesuai kebutuhan.
+7. Mengubah nama, jenis, dan urutan kolom.
+8. Mengedit serta menghapus baris dan kolom sesuai aturan keamanan data.
+9. Mencari, memfilter, dan mengurutkan data.
+10. Menggandakan worksheet.
+11. Mengarsipkan worksheet.
+12. Menghapus worksheet sesuai izin dan kebijakan retensi.
+13. Mengekspor worksheet ke Excel.
+14. Menghubungkan worksheet dengan data lain di aplikasi.
+15. Membuka detail data yang terhubung tanpa membuat duplikasi data sumber.
+
+## 3.3 Jenis kolom
+
+Sediakan jenis kolom berikut:
+
+- Teks.
+- Angka.
+- Mata uang.
+- Tanggal.
+- Pilihan tunggal.
+- Checkbox.
+- Status.
+- Anggota tim.
+- Produk.
+- KOL.
+- Kampanye.
+- Pesanan.
+- Transaksi keuangan.
+- Pembayaran.
+- Tugas.
+- Proyek atau event.
+
+Setiap jenis kolom harus memiliki validasi yang sesuai.
+
+Contoh: kolom tanggal harus menggunakan date picker, kolom mata uang harus memiliki format nominal yang konsisten, dan kolom pilihan harus dapat dikonfigurasi oleh pengguna.
+
+## 3.4 Relasi dengan modul lain
+
+Worksheet harus dapat menghubungkan baris dengan data dari modul:
+
+- Transaksi keuangan.
+- Produk dan persediaan.
+- Pesanan.
+- KOL.
+- Kampanye marketing.
+- Anggota tim.
+- Tugas.
+- Payroll.
+- Komisi.
+- Proyek dan event.
+
+Jika sebuah baris worksheet terhubung ke transaksi, gunakan referensi ID transaksi tersebut. Jangan menyalin transaksi dan menghitungnya kembali.
+
+## 3.5 Aturan keuangan worksheet
+
+Ini merupakan aturan wajib.
+
+- Worksheet baru tidak boleh mengubah saldo keuangan secara otomatis.
+- Nominal pada worksheet hanya dianggap sebagai data monitoring atau estimasi, kecuali dibuat sebagai transaksi resmi melalui proses yang tervalidasi.
+- Mengedit, menggandakan, mengarsipkan, atau mengekspor worksheet tidak boleh membuat transaksi baru.
+- Jika pengguna ingin membuat transaksi dari worksheet, tampilkan proses konfirmasi yang jelas.
+- Transaksi resmi yang telah dibuat harus tetap tersimpan meskipun worksheet diarsipkan atau dihapus.
+- Worksheet wajib mengikuti izin brand dan role pengguna.
+
+## 3.6 UI/UX worksheet
+
+Gunakan desain yang konsisten dengan aplikasi saat ini.
+
+Tampilkan:
+- Halaman daftar worksheet.
+- Tombol “Buat Worksheet”.
+- Nama worksheet, brand, tanggal dibuat, dan status.
+- Pencarian dan filter.
+- Tampilan tabel yang mudah diedit.
+- Pengaturan kolom.
+- Menu duplikasi, arsip, ekspor, dan hapus.
+- Indikator relasi ke data lain.
+- Konfirmasi sebelum menghapus atau melakukan tindakan penting.
+
+---
+
+# 4. FITUR BARU KEDUA — DATABASE KOL DAN KAMPANYE
+
+## 4.1 Tujuan
+
+Tambahkan modul pengelolaan KOL (Key Opinion Leader), influencer, affiliate, dan partner promosi agar performa kerja sama serta komisi dapat dikelola dalam satu sistem.
+
+## 4.2 Data profil KOL
+
+Setiap KOL harus memiliki:
+
+- ID unik.
+- Nama atau nama akun.
+- Informasi kontak.
+- Platform media sosial.
+- Brand terkait.
+- Kampanye atau proyek terkait.
+- Jenis kolaborasi.
+- Kode affiliate atau link tracking.
+- Tanggal mulai dan berakhir kerja sama.
+- Metode perhitungan komisi.
+- Tarif komisi.
+- Status aktif/nonaktif.
+- Catatan dan lampiran jika diperlukan.
+
+Jenis kolaborasi minimal:
+
+- Paid promotion.
+- Barter.
+- Affiliate.
+- Komisi berdasarkan penjualan.
+- Kerja sama dengan kombinasi biaya tetap dan komisi.
+
+## 4.3 Data kampanye
+
+Kampanye dapat menyimpan:
+
+- Nama kampanye.
+- Brand.
+- Periode.
+- Tujuan.
+- KOL yang terlibat.
+- Anggaran.
+- Biaya aktual.
+- Jumlah pesanan teratribusi.
+- Nilai penjualan teratribusi.
+- Komisi.
+- Status kampanye.
+- Catatan dan hasil evaluasi.
+
+Hubungkan data kampanye dengan modul marketing dan laporan yang sudah ada jika tersedia.
+
+Jangan membuat sistem marketing baru yang terpisah apabila modul marketing yang sudah ada dapat dikembangkan.
+
+---
+
+# 5. FITUR BARU KETIGA — ATRIBUSI PENJUALAN KOL
+
+## 5.1 Tujuan
+
+Setiap penjualan yang berasal dari KOL harus dapat dilacak, tetapi tetap dihitung satu kali sebagai penjualan bisnis.
+
+## 5.2 Integrasi pesanan
+
+Setiap pesanan harus dapat dihubungkan dengan:
+
+- Brand.
+- Produk.
+- Tanggal pesanan.
+- KOL sumber jika ada.
+- Kampanye terkait.
+- Nilai penjualan kotor.
+- Diskon.
+- Refund.
+- Nilai penjualan bersih.
+- Status pesanan.
+- Status kelayakan komisi.
+
+Gunakan modul pesanan yang sudah tersedia. Jika belum ada, tambahkan model pesanan yang sesuai dengan arsitektur aplikasi.
+
+## 5.3 Aturan wajib
+
+**Penjualan dari KOL merupakan bagian dari total penjualan brand, bukan pendapatan tambahan di luar penjualan tersebut.**
+
+Contoh:
+
+- Penjualan reguler: Rp5.000.000.
+- Penjualan melalui KOL: Rp2.000.000.
+- Total penjualan: Rp7.000.000.
+
+Jangan menghitung total penjualan menjadi Rp9.000.000 dengan menambahkan kembali penjualan KOL yang sudah tercatat pada pesanan.
+
+Atribusi KOL hanya digunakan untuk analisis sumber penjualan, performa kampanye, dan dasar komisi.
+
+Pesanan yang dibatalkan tidak boleh dihitung sebagai penjualan valid. Refund harus mengurangi penjualan bersih dan memengaruhi komisi sesuai aturan yang berlaku.
+
+Setiap pesanan harus memiliki ID unik untuk mencegah duplikasi.
+
+---
+
+# 6. FITUR BARU KEEMPAT — KOMISI KOL BULANAN
+
+## 6.1 Metode komisi
+
+Sediakan metode komisi yang dapat dikonfigurasi:
+
+1. Persentase dari penjualan valid.
+2. Nominal tetap per pesanan valid.
+3. Tarif khusus produk.
+4. Tarif khusus kampanye.
+5. Biaya tetap ditambah komisi penjualan.
+
+Setiap aturan harus memiliki periode berlaku, dasar perhitungan, serta ketentuan diskon dan refund.
+
+## 6.2 Rekap komisi otomatis
+
+Sistem harus dapat membuat rekap bulanan per brand dan KOL.
+
+Data yang ditampilkan:
+
+- Nama KOL.
+- Brand.
+- Periode.
+- Jumlah pesanan valid.
+- Nilai penjualan teratribusi.
+- Pesanan dibatalkan.
+- Nilai refund.
+- Dasar perhitungan.
+- Tarif komisi.
+- Komisi kotor.
+- Penyesuaian.
+- Komisi final.
+- Jumlah yang sudah dibayar.
+- Saldo terutang.
+- Status persetujuan.
+- Status pembayaran.
+- Tanggal pembayaran.
+- Bukti pembayaran.
+- Referensi transaksi keuangan.
+
+Status rekap minimal:
+
+- Draft.
+- Menunggu review.
+- Disetujui.
+- Dibayar sebagian.
+- Dibayar.
+- Dibatalkan.
+
+## 6.3 Alur komisi KOL
+
+Implementasikan alur berikut:
+
+1. Pesanan dicatat dalam sistem.
+2. Pesanan dikaitkan dengan KOL jika sumber penjualannya berasal dari KOL.
+3. Sistem memeriksa status pesanan dan kelayakan komisi.
+4. Sistem menghitung estimasi komisi.
+5. Pengguna membuka rekap komisi untuk periode bulanan.
+6. Pengguna memeriksa pesanan, refund, tarif, dan penyesuaian.
+7. Rekap diajukan untuk review dan persetujuan.
+8. Setelah disetujui, sistem mencatat kewajiban komisi.
+9. Saat pembayaran dilakukan, pengguna mencatat pembayaran dan menghubungkannya ke rekap.
+10. Sistem memperbarui jumlah dibayar dan saldo terutang.
+11. Laporan keuangan dan arus kas diperbarui sesuai aturan pengakuan yang berlaku.
+
+## 6.4 Pembayaran sebagian
+
+Sistem harus mendukung pembayaran sebagian.
+
+Rumus:
+
+**Saldo terutang = komisi final yang disetujui − total pembayaran valid +/− penyesuaian yang berlaku.**
+
+Satu rekap dapat memiliki beberapa pembayaran jika pembayaran dilakukan secara bertahap. Setiap pembayaran harus memiliki referensi transaksi unik.
+
+Jangan menganggap komisi lunas hanya karena pengguna mengubah status secara manual. Status harus konsisten dengan jumlah pembayaran yang valid.
+
+---
+
+# 7. FITUR BARU KELIMA — MANAJEMEN TIM DAN PEMBAGIAN TUGAS
+
+## 7.1 Profil anggota tim
+
+Tambahkan atau kembangkan modul anggota tim dengan data:
+
+- Nama.
+- Informasi kontak.
+- Role atau posisi.
+- Brand terkait.
+- Status aktif/nonaktif.
+- Jenis kompensasi.
+- Nominal dasar atau tarif.
+- Periode berlaku.
+- Catatan.
+
+Satu anggota tim dapat terlibat dalam lebih dari satu proyek atau event, tetapi data kompensasi harus tetap jelas dan tidak diduplikasi.
+
+## 7.2 Jenis kompensasi
+
+Sistem harus mendukung:
+
+- Gaji bulanan.
+- Honorarium proyek.
+- Honorarium event.
+- Pembayaran berdasarkan tugas.
+- Insentif target.
+- Komisi penjualan.
+- Reimbursement.
+
+Setiap jenis kompensasi harus memiliki aturan perhitungan, periode, status persetujuan, dan referensi sumber bila relevan.
+
+## 7.3 Modul pembagian tugas
+
+Setiap tugas memiliki:
+
+- ID tugas.
+- Judul.
+- Deskripsi.
+- Brand.
+- Proyek/event terkait.
+- Penanggung jawab.
+- Prioritas.
+- Tanggal mulai.
+- Deadline.
+- Status.
+- Estimasi biaya.
+- Catatan.
+- Lampiran.
+- Riwayat perubahan.
+- Referensi worksheet atau payroll jika diperlukan.
+
+Status tugas minimal:
+
+- Belum mulai.
+- Sedang dikerjakan.
+- Review.
+- Revisi.
+- Selesai.
+- Dibatalkan.
+
+Sediakan tampilan daftar dan, jika cocok dengan struktur aplikasi, tampilan board berdasarkan status.
+
+## 7.4 Aturan tugas dan pembayaran
+
+Tugas yang selesai tidak otomatis menghasilkan transaksi keuangan.
+
+Jika sebuah tugas memiliki honorarium:
+- Hubungkan tugas ke aturan kompensasi.
+- Hitung nominal sesuai aturan.
+- Minta persetujuan dari role yang berwenang.
+- Masukkan nominal yang disetujui ke komponen payroll atau honorarium.
+- Catat transaksi hanya saat pembayaran benar-benar dilakukan.
+
+Estimasi biaya tugas tidak boleh dianggap sebagai pengeluaran aktual.
+
+---
+
+# 8. FITUR BARU KEENAM — PAYROLL, HONORARIUM, DAN PEMBAYARAN TIM
+
+## 8.1 Tujuan
+
+Tambahkan pengelolaan payroll agar gaji, honorarium, insentif, dan pembayaran tim dapat dikelola per bulan dan per brand serta terhubung dengan transaksi keuangan.
+
+## 8.2 Rekap payroll
+
+Sistem harus mendukung periode payroll bulanan dengan rincian:
+
+- Nama anggota tim.
+- Brand.
+- Periode.
+- Gaji dasar.
+- Honorarium proyek/event.
+- Insentif.
+- Komisi yang dimasukkan melalui alur payroll, jika digunakan.
+- Reimbursement.
+- Penyesuaian.
+- Total hak pembayaran.
+- Jumlah sudah dibayar.
+- Saldo terutang.
+- Tanggal pembayaran.
+- Bukti pembayaran.
+- Referensi transaksi.
+
+Status payroll:
+
+- Draft.
+- Review.
+- Disetujui.
+- Dibayar sebagian.
+- Dibayar.
+- Dibatalkan.
+
+## 8.3 Alur payroll
+
+1. Pengguna memilih brand dan periode payroll.
+2. Sistem mengambil data gaji dan komponen kompensasi yang relevan.
+3. Sistem menghubungkan honorarium dari proyek/event atau tugas yang telah disetujui.
+4. Pengguna memeriksa nominal dan melakukan penyesuaian dengan alasan yang tercatat.
+5. Payroll dikirim untuk review.
+6. Role berwenang menyetujui payroll.
+7. Sistem mencatat kewajiban pembayaran.
+8. Saat pembayaran dilakukan, sistem mencatat transaksi pengeluaran yang valid.
+9. Jumlah yang dibayar dan saldo terutang diperbarui.
+10. Laporan laba-rugi dan arus kas diperbarui sesuai aturan akuntansi yang dipakai.
+
+## 8.4 Integrasi dengan keuangan
+
+Pembayaran payroll harus terhubung dengan modul transaksi keuangan yang sudah ada.
+
+Ketika payroll dibayar:
+- Buat satu transaksi pengeluaran untuk setiap pembayaran yang benar-benar dilakukan.
+- Hubungkan transaksi tersebut dengan payroll dan penerima.
+- Simpan tanggal, nominal, sumber dana, metode pembayaran, dan bukti jika tersedia.
+- Pembayaran sebagian harus didukung.
+- Status payroll harus sesuai dengan total pembayaran yang valid.
+- Jangan membuat transaksi kedua ketika status payroll berubah menjadi “Dibayar”.
+
+---
+
+# 9. ATURAN KEUANGAN — WAJIB DITERAPKAN
+
+Bagian ini merupakan salah satu bagian paling penting dari pengembangan.
+
+Sebelum mengimplementasikan integrasi keuangan, audit bagaimana aplikasi saat ini mencatat transaksi, pendapatan, beban, persediaan, dan saldo. Jangan menambahkan pencatatan baru yang menduplikasi mekanisme lama.
+
+## 9.1 Alur perhitungan laba
+
+Laporan laba-rugi operasional harus mengikuti alur:
+
+1. Total penjualan dari semua pesanan.
+2. Kurangi diskon, refund, dan pembatalan sesuai aturan yang berlaku.
+3. Dapatkan penjualan bersih.
+4. Kurangi HPP barang yang benar-benar terjual.
+5. Dapatkan laba kotor.
+6. Kurangi komisi KOL.
+7. Kurangi gaji dan payroll.
+8. Kurangi honorarium proyek/event yang belum tercakup di komponen lain.
+9. Kurangi biaya pemasaran.
+10. Kurangi biaya operasional lainnya.
+11. Dapatkan laba operasional.
+
+Rumus:
+
+**Penjualan Bersih = Penjualan Kotor − Diskon − Refund yang Diakui − Pembatalan yang Relevan**
+
+**Laba Kotor = Penjualan Bersih − HPP Barang Terjual**
+
+**Laba Operasional = Laba Kotor − Komisi KOL − Gaji/Payroll − Honorarium − Biaya Pemasaran − Biaya Operasional Lain**
+
+Pastikan komisi dan payroll tidak dihitung dua kali.
+
+Jika suatu komponen komisi sudah dihitung dalam satu kategori beban, jangan masukkan kembali ke kategori beban lainnya.
+
+## 9.2 Perlakuan HPP
+
+Pembelian stok bahan atau produk tidak otomatis seluruhnya menjadi HPP saat pembelian.
+
+- Pembelian persediaan harus dibedakan dari HPP barang yang terjual.
+- HPP dihitung berdasarkan barang yang benar-benar terjual dan metode persediaan yang digunakan.
+- Bahan baku, tenaga kerja langsung, kemasan, dan biaya produksi dapat digunakan untuk menghitung HPP sesuai struktur produk.
+- Produk yang belum terjual tetap menjadi persediaan sesuai metode pencatatan yang dipilih.
+
+Gunakan modul produk, persediaan, dan HPP yang sudah ada jika tersedia.
+
+## 9.3 Bedakan laporan laba-rugi dan arus kas
+
+Sistem harus membedakan:
+
+**Laporan laba-rugi**
+- Menampilkan pendapatan dan beban yang diakui dalam suatu periode.
+- Jika metode akrual diterapkan, komisi/payroll yang sudah menjadi kewajiban dapat menjadi beban sebelum dibayar.
+- Pembayaran kewajiban yang sudah diakui tidak boleh menambah beban untuk kedua kalinya.
+
+**Laporan arus kas**
+- Menampilkan uang yang benar-benar masuk dan keluar.
+- Komisi/payroll mengurangi kas saat pembayaran benar-benar terjadi.
+- Kewajiban yang belum dibayar tidak mengurangi saldo kas.
+
+Jika aplikasi saat ini menggunakan pendekatan kas, pertahankan perilaku yang sudah ada dan jelaskan batasannya. Jangan diam-diam mengubah metode pembukuan seluruh aplikasi.
+
+## 9.4 Contoh untuk mencegah hitung ganda
+
+Misalnya komisi KOL yang telah disetujui adalah Rp500.000.
+
+Jika sistem memakai metode akrual:
+- Saat kewajiban komisi diakui, beban komisi bertambah Rp500.000.
+- Saat komisi dibayar, kas berkurang Rp500.000 dan kewajiban dilunasi.
+- Beban komisi tidak boleh bertambah lagi saat pembayaran.
+
+Jika sistem menggunakan pencatatan berbasis kas:
+- Beban komisi dan kas keluar dicatat ketika pembayaran dilakukan, sesuai desain pembukuan yang berlaku.
+- Jangan sekaligus memasukkan beban akrual dan beban kas sebagai dua beban terpisah.
+
+Terapkan prinsip yang sama pada payroll dan honorarium.
+
+## 9.5 Satu transaksi, satu dampak kas
+
+- Setiap pembayaran memiliki ID unik.
+- Transaksi pembayaran harus terhubung ke kewajiban yang dibayar.
+- Mengubah status menjadi “Dibayar” tidak boleh membuat transaksi baru jika pembayaran sudah tercatat.
+- Transaksi yang sama tidak boleh diimpor atau diproses ulang sehingga mengurangi kas dua kali.
+- Semua koreksi harus memiliki riwayat.
+
+---
+
+# 10. INTEGRASI ANTARMODUL
+
+Pastikan semua fitur baru terhubung dengan modul yang sudah ada.
+
+| Modul | Integrasi yang diperlukan |
+|---|---|
+| Dashboard | Menampilkan ringkasan penjualan, komisi, payroll, tugas, dan kewajiban terutang |
+| Transaksi keuangan | Menjadi sumber resmi pencatatan arus kas |
+| Pesanan/penjualan | Menjadi sumber utama penjualan dan atribusi KOL |
+| Produk/persediaan | Terhubung dengan pesanan dan HPP |
+| HPP | Menghitung biaya barang yang terjual |
+| Marketing/kampanye | Terhubung ke KOL, biaya, dan hasil penjualan |
+| KOL | Menyimpan profil, kerja sama, dan performa |
+| Komisi | Menghitung hak komisi dari pesanan yang valid |
+| Tim | Menyimpan profil anggota dan aturan kompensasi |
+| Tugas | Menghubungkan pekerjaan ke proyek/event dan kompensasi |
+| Payroll | Mengelola hak pembayaran, pembayaran aktual, dan saldo terutang |
+| Worksheet | Menyimpan data operasional fleksibel dengan relasi ke sumber utama |
+| Laporan keuangan | Menampilkan laba-rugi dan arus kas secara konsisten |
+| Excel export | Mengekspor data sesuai filter dan izin akses |
+| Audit log | Mencatat perubahan penting |
+
+Gunakan relasi dan ID unik untuk menghubungkan data. Jangan membuat salinan data transaksi di setiap modul.
+
+---
+
+# 11. DASHBOARD DAN LAPORAN TAMBAHAN
+
+Tambahkan ringkasan yang relevan tanpa menghilangkan komponen dashboard yang sudah ada.
+
+## 11.1 Ringkasan KOL
+
+- Jumlah KOL aktif.
+- Jumlah pesanan teratribusi.
+- Penjualan teratribusi.
+- Komisi estimasi.
+- Komisi disetujui.
+- Komisi sudah dibayar.
+- Komisi belum dibayar.
+- Performa kampanye.
+
+## 11.2 Ringkasan payroll
+
+- Total payroll periode berjalan.
+- Total sudah dibayar.
+- Total saldo terutang.
+- Jumlah penerima.
+- Payroll menunggu persetujuan.
+
+## 11.3 Ringkasan tugas
+
+- Total tugas.
+- Tugas belum dimulai.
+- Tugas sedang dikerjakan.
+- Tugas menunggu review.
+- Tugas selesai.
+- Tugas melewati deadline.
+
+## 11.4 Laporan keuangan
+
+Tampilkan:
+- Penjualan kotor.
+- Diskon dan refund.
+- Penjualan bersih.
+- HPP.
+- Laba kotor.
+- Komisi KOL.
+- Payroll dan honorarium.
+- Biaya pemasaran.
+- Biaya operasional lain.
+- Laba operasional.
+- Arus kas masuk.
+- Arus kas keluar.
+- Saldo kas.
+- Kewajiban komisi dan payroll yang belum dibayar jika data tersebut didukung.
+
+Sediakan filter periode, brand, kategori, dan status yang relevan.
+
+Setiap angka laporan sebisa mungkin dapat diklik untuk melihat rincian sumbernya.
+
+---
+
+# 12. DESAIN UI/UX
+
+Pertahankan gaya visual aplikasi saat ini.
+
+Prinsip desain:
+- Modern dan profesional.
+- Sidebar ungu/lavender.
+- Latar putih atau lavender sangat muda.
+- Kartu dengan sudut membulat.
+- Tabel yang rapi.
+- Ikon sederhana dan konsisten.
+- Hierarki informasi yang jelas.
+- Responsif di desktop, tablet, dan mobile.
+
+Jangan membuat halaman baru terlihat seperti aplikasi yang berbeda.
+
+Gunakan pola komponen yang sudah ada untuk:
+- Tabel.
+- Filter.
+- Modal.
+- Form.
+- Status badge.
+- Tombol aksi.
+- Konfirmasi.
+- Grafik.
+- Notifikasi.
+
+Pastikan form memiliki validasi, pesan kesalahan yang jelas, loading state, empty state, dan feedback keberhasilan/kegagalan.
+
+---
+
+# 13. KEAMANAN DAN AUDIT TRAIL
+
+Semua fitur baru harus mengikuti keamanan aplikasi.
+
+Wajib:
+- Validasi role dan brand pada backend.
+- Mencegah akses lintas brand tanpa izin.
+- Mencegah admin read-only mengubah data.
+- Validasi nominal dan status pembayaran.
+- Mencegah transaksi duplikat.
+- Menggunakan ID unik.
+- Menyimpan histori perubahan data penting.
+- Menyimpan siapa yang menyetujui komisi/payroll dan kapan.
+- Menyimpan alasan koreksi atau penyesuaian.
+- Membatasi penghapusan data yang telah dipakai dalam transaksi keuangan.
+- Menghindari hard delete terhadap data keuangan yang perlu dipertahankan untuk audit.
+
+Jika aplikasi menggunakan database dengan dukungan transaksi, gunakan transaksi database untuk operasi yang harus berhasil atau gagal secara bersamaan, khususnya pembuatan pembayaran dan pembaruan status kewajiban.
+
+Jangan menyimpan password dalam bentuk teks biasa atau melemahkan sistem autentikasi yang sudah ada.
+
+---
+
+# 14. NOTIFIKASI DAN PENGINGAT
+
+Jika sistem notifikasi sudah tersedia, kembangkan sistem tersebut untuk mendukung:
+
+- Komisi KOL menunggu review.
+- Komisi KOL belum dibayar.
+- Periode rekap komisi belum dibuat.
+- Payroll menunggu persetujuan.
+- Payroll belum lunas.
+- Tugas mendekati deadline.
+- Tugas melewati deadline.
+- Pesanan refund memengaruhi perhitungan komisi.
+- Perubahan data setelah rekap disetujui yang membutuhkan pemeriksaan ulang.
+
+Notifikasi hanya boleh terlihat oleh pengguna yang berhak mengakses data terkait.
+
+---
+
+# 15. KRITERIA PENERIMAAN
+
+Implementasi dinyatakan berhasil jika seluruh skenario berikut berjalan.
+
+## Skenario A — Worksheet
+
+1. Pengguna membuat worksheet baru untuk brand yang diizinkan.
+2. Pengguna menambahkan kolom dengan tipe data berbeda.
+3. Pengguna mengisi, mengedit, memfilter, dan mengekspor data.
+4. Worksheet dapat dihubungkan dengan data lain.
+5. Aktivitas worksheet tidak mengubah saldo kas secara otomatis.
+
+## Skenario B — Penjualan KOL
+
+1. Pesanan dikaitkan dengan KOL.
+2. Pesanan masuk satu kali ke total penjualan.
+3. Pesanan muncul dalam laporan performa KOL.
+4. Komisi dihitung sesuai aturan.
+5. Pembatalan dan refund diproses sesuai kebijakan komisi.
+
+## Skenario C — Komisi KOL
+
+1. Sistem membuat rekap bulanan.
+2. Pengguna meninjau dan menyetujui rekap.
+3. Pengguna mencatat pembayaran sebagian.
+4. Sistem memperbarui saldo terutang.
+5. Transaksi kas tercatat satu kali.
+6. Laporan laba-rugi tidak menggandakan beban saat komisi dibayar.
+
+## Skenario D — Payroll
+
+1. Pengguna membuat payroll bulanan.
+2. Honorarium atau insentif diambil dari data terkait jika memenuhi aturan.
+3. Payroll dapat direview dan disetujui.
+4. Pembayaran sebagian atau penuh dapat dicatat.
+5. Saldo terutang diperbarui.
+6. Pembayaran tidak menggandakan beban maupun pengurangan kas.
+
+## Skenario E — Laporan
+
+1. Laporan menghitung penjualan bersih, HPP, laba kotor, dan laba operasional.
+2. Penjualan KOL tidak dihitung dua kali.
+3. Komisi, payroll, pemasaran, dan biaya operasional masuk sesuai metode pembukuan yang berlaku.
+4. Arus kas menunjukkan pembayaran aktual.
+5. Pengguna dapat menelusuri angka laporan ke data sumber.
+
+## Skenario F — Akses
+
+1. Ika hanya dapat mengakses Tirama dan CHEMI.
+2. Redi hanya dapat mengakses BYE, Metamorph, dan Presta Media.
+3. Admin transparansi hanya dapat membaca data sesuai cakupan yang diizinkan.
+4. Akses langsung melalui URL/API tidak dapat melewati izin brand.
+5. Ekspor Excel juga mengikuti izin akses.
+
+---
+
+# 16. URUTAN IMPLEMENTASI
+
+Kerjakan secara bertahap, bukan sekaligus tanpa validasi.
+
+### Tahap 1 — Audit dan persiapan
+- Audit arsitektur, database, model transaksi, dan laporan keuangan.
+- Identifikasi komponen yang dapat digunakan kembali.
+- Tentukan perubahan database yang diperlukan.
+- Siapkan migrasi yang aman dan kompatibel dengan data lama.
+
+### Tahap 2 — Integritas keuangan
+- Pastikan transaksi memiliki ID unik.
+- Tetapkan relasi transaksi dengan komisi/payroll.
+- Cegah duplikasi pembayaran.
+- Pastikan aturan laporan laba-rugi dan arus kas konsisten.
+- Pertahankan metode pembukuan yang sudah ada kecuali ada keputusan perubahan yang jelas.
+
+### Tahap 3 — KOL dan komisi
+- Database KOL.
+- Atribusi pesanan.
+- Aturan komisi.
+- Rekap bulanan.
+- Persetujuan dan pembayaran sebagian.
+
+### Tahap 4 — Tim, tugas, dan payroll
+- Profil anggota tim.
+- Aturan kompensasi.
+- Pembagian tugas.
+- Rekap payroll.
+- Persetujuan dan pembayaran.
+
+### Tahap 5 — Dynamic Worksheet
+- Pembuatan worksheet.
+- Pengaturan kolom.
+- Pengelolaan baris.
+- Relasi ke data lain.
+- Filter dan ekspor.
+
+### Tahap 6 — Integrasi dan pengujian
+- Dashboard.
+- Laporan.
+- Notifikasi.
+- Audit trail.
+- Pengujian hak akses.
+- Pengujian ekspor Excel.
+- Pengujian pencegahan duplikasi.
+- Pengujian regresi fitur lama.
+
+Urutan teknis boleh disesuaikan berdasarkan hasil audit kode, tetapi integritas data keuangan dan keamanan harus didahulukan.
+
+---
+
+# 17. INSTRUKSI AKHIR UNTUK GOOGLE AI STUDIO
+
+Mulai dengan memeriksa proyek yang tersedia dan memahami implementasi saat ini. Setelah audit:
+
+1. Jelaskan secara ringkas bagian aplikasi yang akan digunakan kembali.
+2. Identifikasi perubahan database, backend, dan frontend yang diperlukan.
+3. Implementasikan fitur tambahan dalam perubahan yang terukur.
+4. Buat migrasi database yang aman tanpa menghapus data lama.
+5. Integrasikan fitur baru dengan sistem transaksi, laporan, akses brand, dan ekspor Excel yang sudah ada.
+6. Tambahkan validasi, penanganan error, status loading, dan empty state.
+7. Jalankan atau siapkan pengujian untuk seluruh kriteria penerimaan.
+8. Perbaiki error yang muncul akibat perubahan.
+9. Jangan menandai fitur sebagai selesai jika hanya UI-nya yang dibuat tetapi belum berfungsi.
+10. Berikan ringkasan file yang diubah, tabel/database yang ditambahkan atau dimodifikasi, alur yang telah diimplementasikan, pengujian yang dijalankan, dan pekerjaan yang masih belum selesai.
+
+**Jangan hanya memberikan contoh kode atau rencana implementasi. Kerjakan perubahan langsung pada proyek yang tersedia sejauh lingkungan Google AI Studio mendukungnya. Jika ada keterbatasan atau integrasi yang membutuhkan konfigurasi manual, jelaskan secara spesifik dan jangan mengklaim sudah berfungsi sebelum benar-benar teruji.**
+
+Pastikan aplikasi lama tetap berfungsi, seluruh fitur baru saling terhubung, dan tidak ada transaksi, penjualan, komisi, payroll, atau pengeluaran yang terhitung dua kali.

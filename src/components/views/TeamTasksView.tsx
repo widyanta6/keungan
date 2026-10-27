@@ -67,14 +67,15 @@ export const TeamTasksView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin ? brands : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userMembers = isAdmin ? teamMembers : teamMembers.filter((m) => m.workspaceId === currentUser.workspaceId);
-  const userTasks = isAdmin ? tasks : tasks.filter((t) => t.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userMembers = teamMembers;
+  const userTasks = tasks;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredTasks = userTasks.filter((t) => {
+    if (t.brandId && !brands.some((b) => b.id === t.brandId)) return false;
     if (selectedBrandId !== 'all' && t.brandId !== selectedBrandId) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();

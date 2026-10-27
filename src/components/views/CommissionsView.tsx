@@ -41,20 +41,15 @@ export const CommissionsView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
-  const userCommissions = isAdmin
-    ? commissions
-    : commissions.filter((c) => c.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
+  const userCommissions = commissions;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredCommissions = userCommissions.filter((c) => {
+    if (c.brandId && !brands.some((b) => b.id === c.brandId)) return false;
     if (selectedBrandId !== 'all' && c.brandId !== selectedBrandId) return false;
     return true;
   });

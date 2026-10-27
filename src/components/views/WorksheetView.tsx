@@ -86,18 +86,13 @@ export const WorksheetView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
-  const userWorksheets = isAdmin
-    ? worksheets
-    : worksheets.filter((w) => w.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
+  const userWorksheets = worksheets;
 
-  // Filter worksheets by selected brand & archive toggle
+  // Filter worksheets by permitted brand & archive toggle
   const availableWorksheets = userWorksheets.filter((w) => {
+    if (w.brandId && !brands.some((b) => b.id === w.brandId)) return false;
     if (selectedBrandId !== 'all' && w.brandId !== selectedBrandId) return false;
     if (!showArchived && w.isArchived) return false;
     return true;

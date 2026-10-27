@@ -44,12 +44,8 @@ export const AssetsView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
+  const userAssets = assets;
+  const userBrands = brands;
 
   const totalLiquidity = userAssets.reduce((sum, a) => sum + a.currentBalance, 0);
 

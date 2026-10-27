@@ -44,17 +44,14 @@ export const MarketingView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userMarketing = isAdmin
-    ? marketing
-    : marketing.filter((m) => m.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userMarketing = marketing;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredCampaigns = userMarketing.filter((m) => {
+    if (m.brandId && !brands.some((b) => b.id === m.brandId)) return false;
     if (selectedBrandId !== 'all' && m.brandId !== selectedBrandId) return false;
     return true;
   });

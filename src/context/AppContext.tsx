@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   User,
   UserRole,
@@ -516,6 +516,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return { success: false, error: 'Kata sandi tidak valid.' };
     }
 
+    // Attempt backend session authentication
+    try {
+      const resp = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: cleanEmail, password }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.token) {
+          sessionStorage.setItem('bizflow_auth_token', data.token);
+        }
+      }
+    } catch {
+      // Offline fallback
+    }
+
     const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
     const updatedUser: User = {
       ...user,
@@ -541,6 +558,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const logout = () => {
     if (currentUser) {
       recordAudit('LOGOUT', `Pengguna ${currentUser.name} keluar dari sistem.`, currentUser.workspaceId);
+    }
+    const token = sessionStorage.getItem('bizflow_auth_token');
+    if (token) {
+      fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
+      sessionStorage.removeItem('bizflow_auth_token');
     }
     setCurrentUser(null);
     localStorage.removeItem(STORAGE_KEYS.USER);
@@ -2516,14 +2541,165 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.clear();
   };
 
-  return (
-    <AppContext.Provider
-      value={{
-        currentUser,
-        currentWorkspace,
+  // -------------------------------------------------------------
+  // STRICT DATA ISOLATION & RBAC RESOLUTION
+  // -------------------------------------------------------------
+  const effectiveAllowedBrandIds = useMemo<string[]>(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return brands.map((b) => b.id);
+    }
+    if (currentUser.role === 'ika') {
+      return ['brand_tirama', 'brand_chemi'];
+    }
+    if (currentUser.role === 'redi') {
+      return ['brand_bye', 'brand_metamorph', 'brand_presta'];
+    }
+    return currentUser.allowedBrandIds || [];
+  }, [currentUser, brands]);
+
+  // Enforce selectedBrandId within allowed brands boundary
+  useEffect(() => {
+    if (currentUser && selectedBrandId !== 'all') {
+      if (!effectiveAllowedBrandIds.includes(selectedBrandId)) {
+        setSelectedBrandId('all');
+      }
+    }
+  }, [currentUser, selectedBrandId, effectiveAllowedBrandIds]);
+
+  // Scoped collections: Components accessing these will ONLY see what the logged-in user is authorized to see
+  const scopedBrands = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return brands.filter((b) => b.status === 'active');
+    }
+    return brands.filter((b) => b.status === 'active' && effectiveAllowedBrandIds.includes(b.id));
+  }, [currentUser, brands, effectiveAllowedBrandIds]);
+
+  const scopedTransactions = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return transactions.filter((t) => !t.isDeleted);
+    }
+    return transactions.filter((t) => !t.isDeleted && effectiveAllowedBrandIds.includes(t.brandId));
+  }, [currentUser, transactions, effectiveAllowedBrandIds]);
+
+  const scopedAssets = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return assets;
+    }
+    return assets.filter(
+      (a) => a.workspaceId === currentUser.workspaceId || (a.brandId && effectiveAllowedBrandIds.includes(a.brandId))
+    );
+  }, [currentUser, assets, effectiveAllowedBrandIds]);
+
+  const scopedOrders = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return orders;
+    }
+    return orders.filter((o) => effectiveAllowedBrandIds.includes(o.brandId));
+  }, [currentUser, orders, effectiveAllowedBrandIds]);
+
+  const scopedProducts = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return products;
+    }
+    return products.filter((p) => effectiveAllowedBrandIds.includes(p.brandId));
+  }, [currentUser, products, effectiveAllowedBrandIds]);
+
+  const scopedHppRecipes = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return hppRecipes;
+    }
+    return hppRecipes.filter((h) => effectiveAllowedBrandIds.includes(h.brandId));
+  }, [currentUser, hppRecipes, effectiveAllowedBrandIds]);
+
+  const scopedCommissions = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return commissions;
+    }
+    return commissions.filter((c) => effectiveAllowedBrandIds.includes(c.brandId));
+  }, [currentUser, commissions, effectiveAllowedBrandIds]);
+
+  const scopedWorksheets = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return worksheets;
+    }
+    return worksheets.filter((w) => effectiveAllowedBrandIds.includes(w.brandId));
+  }, [currentUser, worksheets, effectiveAllowedBrandIds]);
+
+  const scopedMarketing = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return marketing;
+    }
+    return marketing.filter((m) => effectiveAllowedBrandIds.includes(m.brandId));
+  }, [currentUser, marketing, effectiveAllowedBrandIds]);
+
+  const scopedKols = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return kols;
+    }
+    return kols.filter((k) => effectiveAllowedBrandIds.includes(k.brandId));
+  }, [currentUser, kols, effectiveAllowedBrandIds]);
+
+  const scopedKolRecaps = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return kolRecaps;
+    }
+    return kolRecaps.filter((r) => effectiveAllowedBrandIds.includes(r.brandId));
+  }, [currentUser, kolRecaps, effectiveAllowedBrandIds]);
+
+  const scopedTeamMembers = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return teamMembers;
+    }
+    return teamMembers.filter(
+      (m) => (m.brandId && effectiveAllowedBrandIds.includes(m.brandId)) || m.workspaceId === currentUser.workspaceId
+    );
+  }, [currentUser, teamMembers, effectiveAllowedBrandIds]);
+
+  const scopedTasks = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return tasks;
+    }
+    return tasks.filter((t) => effectiveAllowedBrandIds.includes(t.brandId));
+  }, [currentUser, tasks, effectiveAllowedBrandIds]);
+
+  const scopedPayrollRecaps = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin' || currentUser.role === 'admin') {
+      return payrollRecaps;
+    }
+    return payrollRecaps.filter((p) => effectiveAllowedBrandIds.includes(p.brandId));
+  }, [currentUser, payrollRecaps, effectiveAllowedBrandIds]);
+
+  const scopedNotifications = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'super_admin') return notifications;
+    if (currentUser.role === 'admin') return notifications.filter((n) => n.workspaceId === 'ws_admin');
+    return notifications.filter((n) => n.workspaceId === currentUser.workspaceId);
+  }, [currentUser, notifications]);
+
+  // Bootstrap server database with seed
+  useEffect(() => {
+    fetch('/api/sync/bootstrap', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         users,
-        workspaces,
         brands,
+        workspaces,
         brandPolicy,
         invitations,
         passwordResets,
@@ -2542,6 +2718,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         teamMembers,
         tasks,
         payrollRecaps,
+      }),
+    }).catch(() => {
+      // Offline fallback
+    });
+  }, []);
+
+  return (
+    <AppContext.Provider
+      value={{
+        currentUser,
+        currentWorkspace,
+        users,
+        workspaces,
+        brands: scopedBrands,
+        brandPolicy,
+        invitations,
+        passwordResets,
+        assets: scopedAssets,
+        transactions: scopedTransactions,
+        products: scopedProducts,
+        hppRecipes: scopedHppRecipes,
+        commissions: scopedCommissions,
+        worksheets: scopedWorksheets,
+        marketing: scopedMarketing,
+        notifications: scopedNotifications,
+        auditLogs,
+        orders: scopedOrders,
+        kols: scopedKols,
+        kolRecaps: scopedKolRecaps,
+        teamMembers: scopedTeamMembers,
+        tasks: scopedTasks,
+        payrollRecaps: scopedPayrollRecaps,
         activeTab,
         setActiveTab,
         selectedBrandId,

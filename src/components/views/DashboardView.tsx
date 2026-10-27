@@ -47,14 +47,14 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   if (!currentUser) return null;
 
-  // Filter brands and assets by user workspace
-  const userBrands = brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = assets.filter((a) => a.workspaceId === currentUser.workspaceId);
+  // Filter brands and assets by user's permitted brands (strictly isolated by AppContext)
+  const userBrands = brands;
+  const userAssets = assets;
 
-  // Filter transactions by workspace & brand
+  // Filter transactions strictly by permitted brands
   const filteredTxs = transactions.filter((tx) => {
     if (tx.isDeleted) return false;
-    if (tx.workspaceId !== currentUser.workspaceId) return false;
+    if (tx.brandId && !brands.some((b) => b.id === tx.brandId)) return false;
     if (selectedBrandId !== 'all' && tx.brandId !== selectedBrandId) return false;
 
     // Filter dateRange if needed
@@ -80,15 +80,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const netCashFlow = totalIncome - totalExpense - totalPurchase;
   const totalBalance = userAssets.reduce((sum, a) => sum + a.currentBalance, 0);
 
-  // Filtered orders & KOL data
+  // Filtered orders & KOL data (strictly isolated by permitted brands)
   const userOrders = orders.filter((o) => {
-    if (o.workspaceId !== currentUser.workspaceId) return false;
+    if (o.brandId && !brands.some((b) => b.id === o.brandId)) return false;
     if (selectedBrandId !== 'all' && o.brandId !== selectedBrandId) return false;
     return true;
   });
-  const userKols = kols.filter((k) => k.workspaceId === currentUser.workspaceId);
+  const userKols = kols;
   const userKolRecaps = kolRecaps.filter((r) => {
-    if (r.workspaceId !== currentUser.workspaceId) return false;
+    if (r.brandId && !brands.some((b) => b.id === r.brandId)) return false;
     if (selectedBrandId !== 'all' && r.brandId !== selectedBrandId) return false;
     return true;
   });
@@ -101,9 +101,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const totalKolOutstanding = userKolRecaps.reduce((sum, r) => sum + r.outstandingBalance, 0);
 
   // Filtered Team & Tasks
-  const userTeam = teamMembers.filter((m) => m.workspaceId === currentUser.workspaceId);
+  const userTeam = teamMembers;
   const userTasks = tasks.filter((t) => {
-    if (t.workspaceId !== currentUser.workspaceId) return false;
+    if (t.brandId && !brands.some((b) => b.id === t.brandId)) return false;
     if (selectedBrandId !== 'all' && t.brandId !== selectedBrandId) return false;
     return true;
   });
@@ -113,7 +113,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   // Filtered Payroll
   const userPayrolls = payrollRecaps.filter((p) => {
-    if (p.workspaceId !== currentUser.workspaceId) return false;
+    if (p.brandId && !brands.some((b) => b.id === p.brandId)) return false;
     if (selectedBrandId !== 'all' && p.brandId !== selectedBrandId) return false;
     return true;
   });

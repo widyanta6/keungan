@@ -22,8 +22,8 @@ export const TransactionModal: React.FC<TransactionModalProps> = ({
     updateTransaction,
   } = useApp();
 
-  const userBrands = brands.filter((b) => b.workspaceId === currentUser?.workspaceId);
-  const userAssets = assets.filter((a) => a.workspaceId === currentUser?.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
 
   const [type, setType] = useState<TransactionType>('income');
   const [brandId, setBrandId] = useState<string>('');

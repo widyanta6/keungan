@@ -49,18 +49,15 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     (n) => (n.workspaceId === currentUser.workspaceId || (isAdmin && n.workspaceId === 'ws_admin')) && !n.isRead
   ).length;
 
-  // Handle Quick Export
+  // Handle Quick Export (Strictly isolated by current user's permitted brands)
   const handleQuickExport = () => {
     let exportTxs = transactions;
     let exportAssets = assets;
-    let wsName = currentWorkspace?.name || 'Transparansi Baliyoutevolution';
+    let wsName = currentWorkspace?.name || (isAdmin ? 'Transparansi Baliyoutevolution' : 'Ruang Kerja Saya');
 
-    if (!isAdmin) {
-      exportTxs = transactions.filter((t) => t.workspaceId === currentUser.workspaceId);
-      exportAssets = assets.filter((a) => a.workspaceId === currentUser.workspaceId);
-      if (selectedBrandId !== 'all') {
-        exportTxs = exportTxs.filter((t) => t.brandId === selectedBrandId);
-      }
+    if (selectedBrandId !== 'all') {
+      exportTxs = transactions.filter((t) => t.brandId === selectedBrandId);
+      exportAssets = assets.filter((a) => a.brandId === selectedBrandId);
     }
 
     const rangeLabels = {
@@ -79,10 +76,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       brands,
       transactions: exportTxs,
       assets: exportAssets,
-      products: !isAdmin ? products.filter((p) => p.workspaceId === currentUser.workspaceId) : products,
-      hppRecipes: !isAdmin ? hppRecipes.filter((h) => h.workspaceId === currentUser.workspaceId) : hppRecipes,
-      commissions: !isAdmin ? commissions.filter((c) => c.workspaceId === currentUser.workspaceId) : commissions,
-      marketing: !isAdmin ? marketing.filter((m) => m.workspaceId === currentUser.workspaceId) : marketing,
+      products: selectedBrandId !== 'all' ? products.filter((p) => p.brandId === selectedBrandId) : products,
+      hppRecipes: selectedBrandId !== 'all' ? hppRecipes.filter((h) => h.brandId === selectedBrandId) : hppRecipes,
+      commissions: selectedBrandId !== 'all' ? commissions.filter((c) => c.brandId === selectedBrandId) : commissions,
+      marketing: selectedBrandId !== 'all' ? marketing.filter((m) => m.brandId === selectedBrandId) : marketing,
     });
   };
 

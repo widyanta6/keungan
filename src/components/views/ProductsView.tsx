@@ -45,17 +45,14 @@ export const ProductsView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userProducts = isAdmin
-    ? products
-    : products.filter((p) => p.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userProducts = products;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredProducts = userProducts.filter((p) => {
+    if (p.brandId && !brands.some((b) => b.id === p.brandId)) return false;
     if (selectedBrandId !== 'all' && p.brandId !== selectedBrandId) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();

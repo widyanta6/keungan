@@ -41,15 +41,9 @@ export const HppView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userProducts = isAdmin
-    ? products
-    : products.filter((p) => p.workspaceId === currentUser.workspaceId);
-  const userRecipes = isAdmin
-    ? hppRecipes
-    : hppRecipes.filter((h) => h.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userProducts = products;
+  const userRecipes = hppRecipes;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));

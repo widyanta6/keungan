@@ -49,15 +49,16 @@ export const KOLCommissionRecapView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin ? brands : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = isAdmin ? assets : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
-  const userKols = isAdmin ? kols : kols.filter((k) => k.workspaceId === currentUser.workspaceId);
-  const userRecaps = isAdmin ? kolRecaps : kolRecaps.filter((r) => r.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
+  const userKols = kols;
+  const userRecaps = kolRecaps;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredRecaps = userRecaps.filter((r) => {
+    if (r.brandId && !brands.some((b) => b.id === r.brandId)) return false;
     if (selectedBrandId !== 'all' && r.brandId !== selectedBrandId) return false;
     return true;
   });

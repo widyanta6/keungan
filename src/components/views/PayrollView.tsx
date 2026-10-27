@@ -64,24 +64,17 @@ export const PayrollView: React.FC = () => {
   if (!currentUser) return null;
   const isAdmin = currentUser.role === 'admin';
 
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
-  const userTeamMembers = isAdmin
-    ? teamMembers
-    : teamMembers.filter((m) => m.workspaceId === currentUser.workspaceId);
+  const userTeamMembers = teamMembers;
 
   // Filter Recaps
   const filteredRecaps = payrollRecaps.filter((p) => {
-    if (!isAdmin && p.workspaceId !== currentUser.workspaceId) return false;
+    if (p.brandId && !brands.some((b) => b.id === p.brandId)) return false;
     if (selectedBrandId !== 'all' && p.brandId !== selectedBrandId) return false;
     if (statusFilter !== 'all' && p.status !== statusFilter) return false;
     if (periodFilter !== 'all' && p.period !== periodFilter) return false;

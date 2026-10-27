@@ -51,16 +51,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isAdmin = currentUser.role === 'admin';
   const isSuperAdmin = currentUser.role === 'super_admin';
 
-  // Allowed brands for current user with strict status check
-  const userBrands = isSuperAdmin || isAdmin
-    ? brands.filter((b) => b.status === 'active')
-    : brands.filter((b) => {
-        if (b.status !== 'active') return false;
-        if (currentUser.allowedBrandIds?.includes(b.id)) return true;
-        if (b.ownerUserId === currentUser.id) return true;
-        if (b.workspaceId === currentUser.workspaceId) return true;
-        return false;
-      });
+  // Allowed brands for current user (already strictly isolated by AppContext)
+  const userBrands = brands.filter((b) => b.status === 'active');
 
   const unreadNotifCount = notifications.filter(
     (n) => (n.workspaceId === currentUser.workspaceId || (isAdmin && n.workspaceId === 'ws_admin') || (isSuperAdmin && n.workspaceId === 'ws_superadmin')) && !n.isRead
@@ -487,58 +479,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
         {/* User Profile & Demo Switcher in Footer */}
         <div className="p-3 border-t border-[#2D1B54] bg-[#140A28] space-y-2">
-          {/* Quick Demo Switcher */}
-          <div className="px-2 py-1 text-[11px] text-violet-300/70 flex items-center justify-between font-medium">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-violet-400" />
-              Ganti Akun Demo:
+          {/* Secure Session Status Indicator */}
+          <div className="px-2.5 py-2 text-[11px] text-violet-300/80 flex items-center justify-between font-medium bg-[#1F103A] rounded-lg border border-[#3A1E6B]">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Sesi Terisolasi & Aman</span>
             </span>
-          </div>
-          <div className="grid grid-cols-4 gap-1 px-1">
-            <button
-              onClick={() => switchDemoAccount('super_admin')}
-              className={`px-1.5 py-1.5 text-xs rounded font-medium transition-colors text-center ${
-                currentUser.role === 'super_admin'
-                  ? 'bg-purple-600 text-white font-bold'
-                  : 'bg-[#27154A] text-purple-300 hover:text-white hover:bg-[#341C61]'
-              }`}
-              title="Super Admin BizFlow"
-            >
-              Super
-            </button>
-            <button
-              onClick={() => switchDemoAccount('ika')}
-              className={`px-1.5 py-1.5 text-xs rounded font-medium transition-colors text-center ${
-                currentUser.role === 'ika'
-                  ? 'bg-violet-600 text-white font-bold'
-                  : 'bg-[#27154A] text-violet-300 hover:text-white hover:bg-[#341C61]'
-              }`}
-              title="Ika (Tirama & CHEMI)"
-            >
-              Ika
-            </button>
-            <button
-              onClick={() => switchDemoAccount('redi')}
-              className={`px-1.5 py-1.5 text-xs rounded font-medium transition-colors text-center ${
-                currentUser.role === 'redi'
-                  ? 'bg-violet-600 text-white font-bold'
-                  : 'bg-[#27154A] text-violet-300 hover:text-white hover:bg-[#341C61]'
-              }`}
-              title="Redi (BYE, Metamorph, Presta Media)"
-            >
-              Redi
-            </button>
-            <button
-              onClick={() => switchDemoAccount('admin')}
-              className={`px-1.5 py-1.5 text-xs rounded font-medium transition-colors text-center ${
-                currentUser.role === 'admin'
-                  ? 'bg-amber-600 text-white font-bold'
-                  : 'bg-[#27154A] text-violet-300 hover:text-white hover:bg-[#341C61]'
-              }`}
-              title="Admin Baliyoutevolution (Read-Only Transparansi)"
-            >
-              Admin
-            </button>
+            <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wider">Aktif</span>
           </div>
 
           {/* Current User Card */}

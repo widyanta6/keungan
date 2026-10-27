@@ -55,10 +55,10 @@ export const OrdersView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin ? brands : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userOrders = isAdmin ? orders : orders.filter((o) => o.workspaceId === currentUser.workspaceId);
-  const userProducts = isAdmin ? products : products.filter((p) => p.workspaceId === currentUser.workspaceId);
-  const userKols = isAdmin ? kols : kols.filter((k) => k.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userOrders = orders;
+  const userProducts = products;
+  const userKols = kols;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));

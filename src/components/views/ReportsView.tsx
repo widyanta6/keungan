@@ -53,19 +53,16 @@ export const ReportsView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userAssets = assets;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
-  // Filter helper by brand and dateRange
+  // Filter helper strictly ensuring item belongs to permitted brands and dateRange
   const filterByContext = (item: { brandId?: string; workspaceId?: string; date?: string; orderDate?: string; period?: string }) => {
-    if (!isAdmin && item.workspaceId && item.workspaceId !== currentUser.workspaceId) return false;
+    // Brand boundary check: item must belong to the user's permitted brands
+    if (item.brandId && !brands.some((b) => b.id === item.brandId)) return false;
     if (selectedBrandId !== 'all' && item.brandId && item.brandId !== selectedBrandId) return false;
     
     const targetDate = item.date || item.orderDate;

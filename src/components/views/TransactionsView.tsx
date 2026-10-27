@@ -49,13 +49,9 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
 
   const isAdmin = currentUser.role === 'admin';
 
-  // Allowed brands & assets
-  const userBrands = isAdmin
-    ? brands
-    : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userAssets = isAdmin
-    ? assets
-    : assets.filter((a) => a.workspaceId === currentUser.workspaceId);
+  // Allowed brands & assets (strictly isolated by AppContext)
+  const userBrands = brands;
+  const userAssets = assets;
 
   // Map helpers
   const brandMap = new Map<string, string>();
@@ -69,8 +65,8 @@ export const TransactionsView: React.FC<TransactionsViewProps> = ({
     // Only show active transactions (unless audited)
     if (tx.isDeleted) return false;
 
-    // Workspace boundary check
-    if (!isAdmin && tx.workspaceId !== currentUser.workspaceId) return false;
+    // Strict Brand boundary check
+    if (tx.brandId && !brands.some((b) => b.id === tx.brandId)) return false;
 
     // Brand filter
     if (selectedBrandId !== 'all' && tx.brandId !== selectedBrandId) return false;

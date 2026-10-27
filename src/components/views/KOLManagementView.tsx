@@ -55,14 +55,15 @@ export const KOLManagementView: React.FC = () => {
   if (!currentUser) return null;
 
   const isAdmin = currentUser.role === 'admin';
-  const userBrands = isAdmin ? brands : brands.filter((b) => b.workspaceId === currentUser.workspaceId);
-  const userKols = isAdmin ? kols : kols.filter((k) => k.workspaceId === currentUser.workspaceId);
-  const userOrders = isAdmin ? orders : orders.filter((o) => o.workspaceId === currentUser.workspaceId);
+  const userBrands = brands;
+  const userKols = kols;
+  const userOrders = orders;
 
   const brandMap = new Map<string, string>();
   brands.forEach((b) => brandMap.set(b.id, b.name));
 
   const filteredKols = userKols.filter((k) => {
+    if (k.brandId && !brands.some((b) => b.id === k.brandId)) return false;
     if (selectedBrandId !== 'all' && k.brandId !== selectedBrandId) return false;
     if (platformFilter !== 'all' && k.platform !== platformFilter) return false;
     if (searchQuery.trim()) {
